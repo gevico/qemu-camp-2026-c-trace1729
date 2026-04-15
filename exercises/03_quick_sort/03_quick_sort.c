@@ -13,8 +13,35 @@ typedef struct {
 Student students[MAX_STUDENTS];
 
 void quick_sort(int left, int right) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+
+    // edge cases, when the number in the array is one or below
+    if (left >= right) {return ;}
+
+    // choose a pivot
+    int v = students[right].score;
+
+    // reorder the array, make the element higher than the pivot on the left side of the pivot.
+    int pivot = left,i = 0; // inital ptr
+
+    for ( i = left; i <= right - 1; i++) {
+        if (students[i].score > v) {
+            Student t = students[pivot];
+            students[pivot] = students[i];
+            students[i] = t;
+            pivot++;
+        }
+    }
+
+    // now pivot must points to the value that is less than the pivot
+    Student t = students[right];
+    students[right] = students[pivot];
+    students[pivot] = t;
+
+
+    // recursively sort on the left hand side
+    quick_sort(left, pivot - 1);
+    // recursively sort on the right hand side
+    quick_sort(pivot + 1, right);
 }
 
 int main(void) {
