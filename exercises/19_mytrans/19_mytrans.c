@@ -41,11 +41,34 @@ int main() {
         continue;
     }
 
-    // 使用 strtok 按空格分割单词
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    char word[128];
+    int word_pos = 0;
+    for (size_t i = 0; ; i++) {
+      char ch = line[i];
+      if (isalpha((unsigned char)ch) || ch == '\'') {
+        if (word_pos < (int)sizeof(word) - 1) {
+          word[word_pos++] = (char)tolower((unsigned char)ch);
+        }
+      } else {
+        if (word_pos > 0) {
+          word[word_pos] = '\0';
+          const char *translation = hash_table_lookup(table, word);
+          if (translation) {
+            printf("原文: %s\t翻译: %s\n", word, translation);
+          } else {
+            printf("原文: %s\t未找到该单词的翻译。\n", word);
+          }
+          word_pos = 0;
+        }
+
+        if (ch == '\0') {
+          break;
+        }
+      }
+    }
   }
 
+  fclose(file);
   free_hash_table(table);
   return 0;
 }

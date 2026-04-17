@@ -49,3 +49,4 @@ tests/test_result_*.json
 .idea/
 *.swp
 *~
+.codex
