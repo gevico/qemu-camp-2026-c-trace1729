@@ -52,6 +52,9 @@ int main(void)
     return 0;
 }
 
+#define OUTCMD 0
+#define INCMD 1
+
 // shell_parse 和 execute_command 保持不变
 int shell_parse(char *buf, char *argv[])
 {
@@ -61,7 +64,26 @@ int shell_parse(char *buf, char *argv[])
     // 功能：将输入字符串buf按空格分割成多个参数，存入argv数组
     // 返回：参数个数argc
     // 提示：使用状态机的方式处理，注意处理字符串结束符
-    // I AM NOT DONE
+    // state: OUTCMD -> (if encounter ~space) INCMD, argc++,
+    // state: INCMD -> (if encounter space or \n) OUTCMD, fill space with `\0`
+    while (*buf != '\0') {
+        switch (state) {
+            case OUTCMD:
+                if (*buf != ' ') {
+                    state = INCMD;
+                    argv[argc] = buf;
+                    argc++;
+                }
+            break;
+            case INCMD:
+                if (*buf == ' ' || *buf == '\n') {
+                    *buf = '\0';
+                    state = OUTCMD;
+                }
+            break;
+        }
+        buf++;
+    }
     return argc;
 }
 

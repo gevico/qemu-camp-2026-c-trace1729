@@ -39,9 +39,36 @@ void processFile(const char *filename) {
 
     printf("=== 处理数据来自: %s ===\n", filename);
 
+    int int_array[20];
+    float float_array[20];
+
     switch (choice) {
-        // TODO: 在这里添加你的代码
-        // I AM NOT DONE
+        case 1:
+            for (int i = 0; i < n; i++) {
+                fscanf(fin, "%d", &int_array[i]);
+            }
+            sort(int_array, n, sizeof(int), compareInt);
+            for (int i = 0; i < n; i++) {
+                printf("%d", int_array[i]);
+                if (i + 1 < n) {
+                    printf(" ");
+                }
+            }
+            printf("\n");
+            break;
+        case 2:
+            for (int i = 0; i < n; i++) {
+                fscanf(fin, "%f", &float_array[i]);
+            }
+            sort(float_array, n, sizeof(float), compareFloat);
+            for (int i = 0; i < n; i++) {
+                printf("%.2f", float_array[i]);
+                if (i + 1 < n) {
+                    printf(" ");
+                }
+            }
+            printf("\n");
+            break;
     }
 
     fclose(fin);
