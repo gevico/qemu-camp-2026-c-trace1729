@@ -57,25 +57,32 @@ void josephus_problem(int n, int k, int m) {
         printf("\n");
         return;
     }
+    link prev = current;
+    while (prev->next != NULL) {
+        prev = prev->next;
+    }
     for (int i = 1; i < k; ++i) {
+        prev = current;
         current = next_wrap(current);
     }
 
     // 依次出列并打印顺序
-    for (int out = 0; out < n; ++out) {
-        if (m == 1) {
-            // m==1 时当前节点直接出列
-            // TODO: 在这里添加你的代码
-            // I AM NOT DONE
+    for (int remaining = n; remaining > 0; --remaining) {
+        for (int step = 1; step < m; ++step) {
+            prev = current;
+            current = next_wrap(current);
         }
 
-        // 数到 m 的那个人出列：从 current 开始走 m-1 步，落在第 m 个节点
-        // TODO: 在这里添加你的代码
-        // I AM NOT DONE
+        print_item(current);
 
-        // 此时 current 指向要出列的人
-        // TODO: 在这里添加你的代码
-        // I AM NOT DONE
+        if (remaining == 1) {
+            delete(current);
+            break;
+        }
+
+        link next = current->next ? current->next : get_head_node();
+        delete(current);
+        current = next;
     }
 
     printf("\n");
