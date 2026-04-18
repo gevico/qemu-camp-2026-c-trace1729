@@ -37,6 +37,15 @@ exercises/*/*
 !exercises/*/*.txt
 !exercises/*/*.md
 !exercises/*/Makefile
+!exercises/*/include/
+!exercises/*/include/**/
+!exercises/*/include/**/*.h
+!exercises/*/src/
+!exercises/*/src/**/
+!exercises/*/src/**/*.c
+!exercises/*/src/**/*.h
+!exercises/*/src/**/*.txt
+!exercises/*/src/**/Makefile
 tests/test_*
 !tests/test_*.c
 

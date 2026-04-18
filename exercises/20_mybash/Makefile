@@ -18,19 +18,21 @@ SUBDIRS := \
 # 默认目标：构建 mybash（依赖其他库）
 all: mybash
 
+OBJPATH = obj
+BINPATH = bin
 # 通用规则：构建每个子模块（静态库）
 $(SUBDIRS):
-    # TODO: 在这里添加你的代码
-    # I AM NOT DONE
+	mkdir -p $(OBJPATH)/$@
+	$(MAKE) -C src/$@ OBJDIR=../../$(OBJPATH)/$@
 
 # 构建 mybash（可执行文件，依赖上面的库）
 mybash: $(SUBDIRS)
-	# TODO: 在这里添加你的代码
-    # I AM NOT DONE
+	mkdir -p $(BINPATH)
+	mkdir -p $(OBJPATH)/$@
+	$(MAKE) -C src/$@ BINDIR=../../$(BINPATH) OBJDIR=../../$(OBJPATH)/$@
 
 # 清理所有生成的文件
 clean:
-    # TODO: 在这里添加你的代码
-    # I AM NOT DONE
+	rm -rf bin obj
 
 .PHONY: all $(SUBDIRS) mybash clean
