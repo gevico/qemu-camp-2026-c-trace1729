@@ -15,15 +15,25 @@ struct Test {
 };
 
 /*
+ *  “运行时真正解引用空指针”是未定义行为
+  - 这里只能在 typeof、offsetof 这种不求值/编译器特殊处理的
+    场景里这么写
+  - 如果你真的写：
+
+ * */
+
+/*
  * container_of 宏
  * 原理：结构体首地址 + 成员偏移量 = 成员地址
  *      → 结构体首地址 = 成员地址 - 成员偏移量
  * 类型约束：使用 typeof 对 ptr 的类型进行校验，减少误用风险
  */
-#define container_of(ptr, type, member)
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
-
+#define container_of(ptr, type, member) \
+   ({  \
+        const typeof(((type* )0)->member) *__mptr = (ptr); \
+        (type*)((char*)__mptr - offsetof(type, member));\
+    })
+//
 int main(void) {
     struct Test t = {.a = 42, .b = 'Z'};
 
