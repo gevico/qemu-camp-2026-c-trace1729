@@ -88,18 +88,18 @@ static void list_add_to_head(LRUCache* c, LRUNode* node) {
     node->prev = c->head;
 }
 
-static void list_remove(LRUCache* c, LRUNode* node) {
-    DEBUG
-    ASSERT(node != NULL);
-    LRUNode* p = c->head;
-    while (p != c->tail && p != node) {p = p->next;}
-    if (p == c->tail) {return;}
-    ASSERT(node->prev);
-    ASSERT(node->next);
-    node->prev->next = node->next;
-    node->next->prev = node->prev;
-    free(node);
-}
+/* static void list_remove(LRUCache* c, LRUNode* node) { */
+/*     DEBUG */
+/*     ASSERT(node != NULL); */
+/*     LRUNode* p = c->head; */
+/*     while (p != c->tail && p != node) {p = p->next;} */
+/*     if (p == c->tail) {return;} */
+/*     ASSERT(node->prev); */
+/*     ASSERT(node->next); */
+/*     node->prev->next = node->next; */
+/*     node->next->prev = node->prev; */
+/*     free(node); */
+/* } */
 
 static void list_move_to_head(LRUCache* c, LRUNode* node) {
     DEBUG
@@ -140,7 +140,7 @@ static LRUCache* lru_create(int capacity) {
     for (int i = 0; i < capacity; i++) {
         lru->buckets[i] = calloc(1, sizeof(HashEntry));
     }
-    lru->bucket_count = capacity;
+    lru->bucket_count = 3;
     return lru;
 }
 
@@ -165,6 +165,7 @@ static void lru_free(LRUCache* c) {
             free(t);
         }
     }
+    free(c->buckets);
     // free lru
     free(c);
 }
@@ -214,6 +215,7 @@ static void lru_put(LRUCache* c, int key, int value) {
 
     HashEntry* n = hash_find(c, key, NULL);
     if (n != NULL) {
+        n->node->value = value;
         list_move_to_head(c, n->node);
     } else {
         if (c->size + 1 > c->capacity) {
