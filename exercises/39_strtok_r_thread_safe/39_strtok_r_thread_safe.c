@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * 19 字符串分割器（类似 strtok_r）
@@ -10,14 +11,41 @@
 
 /* 判断字符 c 是否在分隔符集合 delim 中 */
 static int is_delim(char c, const char *delim) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    return strchr(delim, c) != NULL;
 }
 
 /* 线程安全版本：通过 saveptr 维护调用状态，不使用静态变量 */
 char *strtok_r(char *str, const char *delim, char **saveptr) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    char *p;
+
+    if (str != NULL) {
+        p = str;
+    } else if (*saveptr != NULL) {
+        p = *saveptr;
+    } else {
+        return NULL;
+    }
+
+    while (*p != '\0' && is_delim(*p, delim)) {
+        p++;
+    }
+    if (*p == '\0') {
+        *saveptr = NULL;
+        return NULL;
+    }
+
+    str = p;
+    while (*p != '\0' && !is_delim(*p, delim)) {
+        p++;
+    }
+    if (*p == '\0') {
+        *saveptr = NULL;
+        return str;
+    }
+
+    *p = '\0';
+    *saveptr = p + 1;
+    return str;
 }
 
 int main(void) {

@@ -52,6 +52,7 @@ tests/test_*
 # 测试结果
 test_results_summary.json
 tests/test_result_*.json
+!tests/test_20_mybash.sh
 
 # 编辑器和IDE文件
 .vscode/
