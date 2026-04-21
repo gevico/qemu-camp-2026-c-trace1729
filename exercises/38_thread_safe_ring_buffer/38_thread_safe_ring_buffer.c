@@ -19,26 +19,54 @@ typedef struct {
     pthread_cond_t not_empty; /* 条件：非空 */
 } ring_buffer_t;
 
+// invarient: tail points to the next insert pos.
+//              head points to the next pop pos.
+
 static int rb_init(ring_buffer_t *rb, size_t capacity) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    rb->buf = calloc(capacity, sizeof(int));
+    rb->capacity = capacity;
+    rb->count = 0;
+    rb->head = 0;
+    rb->tail = 0;
+    pthread_mutex_init(&rb->mtx, NULL);
+    pthread_cond_init(&rb->not_full, NULL);
+    pthread_cond_init(&rb->not_empty, NULL);
+
+    return 0;
 }
 
 static void rb_destroy(ring_buffer_t *rb) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    free(rb->buf);
+    pthread_mutex_destroy(&rb->mtx);
+    pthread_cond_destroy(&rb->not_full);
+    pthread_cond_destroy(&rb->not_empty);
 }
 
 /* 入队：满则等待 not_full */
 static void rb_push(ring_buffer_t *rb, int val) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    pthread_mutex_lock(&rb->mtx);
+    while(rb->count >= rb->capacity) {
+        pthread_cond_wait(&rb->not_full, &rb->mtx);
+    }
+    rb->buf[rb->tail] = val;
+    rb->tail = (rb->tail + 1) % rb->capacity;
+    rb->count++;
+    if (rb->count > 0) pthread_cond_signal(&rb->not_empty);
+    pthread_mutex_unlock(&rb->mtx);
 }
 
 /* 出队：空则等待 not_empty */
 static int rb_pop(ring_buffer_t *rb, int *out) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    pthread_mutex_lock(&rb->mtx);
+    while (rb->count <= 0) {
+        pthread_cond_wait(&rb->not_empty, &rb->mtx);
+    }
+    *out = rb->buf[rb->head];
+    rb->head = (rb->head + 1) % rb->capacity;
+    rb->count--;
+    if (rb->count < rb->capacity) pthread_cond_signal(&rb->not_full);
+    pthread_mutex_unlock(&rb->mtx);
+    return 0;
 }
 
 typedef struct {
@@ -53,14 +81,52 @@ typedef struct {
 } consumer_arg_t;
 
 static void *producer(void *arg) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    // put data int the queue
+    producer_arg_t* data = (producer_arg_t*)arg;
+    for (size_t i = 0; i < data->n; i++) {
+        rb_push(data->rb, data->data[i]);
+    }
+    return NULL;
 }
 
 static void *consumer(void *arg) {
-    // TODO: 在这里添加你的代码
-    // I AM NOT DONE
+    consumer_arg_t* data = (consumer_arg_t*) arg;
+    for (size_t i = 0; i < data->n; i++) {
+        int out;
+        rb_pop(data->rb, &out);
+        if (out == 6) { printf("%d\n", out);}
+        else { printf("%d,", out); }
+    }
+    return NULL;
 }
+
+/*
+ * 单线程的心智模型
+ *   单个状态机 + 内存
+ *   state = (pc, locals, heap)
+ * 多线程的心智模型
+ *   多个状态机 + 一块共享内存 + 一个调度器
+ *   state = (
+ *      thread1: (pc, local, statuc)
+ *      ...
+ *      shared_mem
+ *      locked_state
+ *      cond_state
+ *      scheduler_state
+ *   )
+ *   关心下一行可能是谁跑，已经共享状态是否会被改变
+* */
+/*
+ * 无论是单线程还是多线程，都要关注架构中的 invarient 是否会被破坏
+ *  比如无论是多线程还是单项程，队列的 tail 是指向下一个入队的位置，head 是指向下一个出队的位置
+ *    单线程通过if 条件维护
+ *    多线程通过 mutex 和 while 条件维护
+ *      为了提升效率，引入条件 cond, 来避免cpu stall
+ * */
+
+/**
+ *
+ */
 
 int main(void) {
     /* 输入：缓冲区容量 5，生产者线程写入 [1,2,3,4,5,6]（第 6 个元素等待消费者读取后写入）
