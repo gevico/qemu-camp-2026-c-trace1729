@@ -24,6 +24,9 @@ typedef struct {
 
 static int rb_init(ring_buffer_t *rb, size_t capacity) {
     rb->buf = calloc(capacity, sizeof(int));
+    if (rb->buf == NULL) {
+        return -1;
+    }
     rb->capacity = capacity;
     rb->count = 0;
     rb->head = 0;
@@ -45,26 +48,26 @@ static void rb_destroy(ring_buffer_t *rb) {
 /* 入队：满则等待 not_full */
 static void rb_push(ring_buffer_t *rb, int val) {
     pthread_mutex_lock(&rb->mtx);
-    while(rb->count >= rb->capacity) {
+    while (rb->count == rb->capacity) {
         pthread_cond_wait(&rb->not_full, &rb->mtx);
     }
     rb->buf[rb->tail] = val;
     rb->tail = (rb->tail + 1) % rb->capacity;
     rb->count++;
-    if (rb->count > 0) pthread_cond_signal(&rb->not_empty);
+    pthread_cond_signal(&rb->not_empty);
     pthread_mutex_unlock(&rb->mtx);
 }
 
 /* 出队：空则等待 not_empty */
 static int rb_pop(ring_buffer_t *rb, int *out) {
     pthread_mutex_lock(&rb->mtx);
-    while (rb->count <= 0) {
+    while (rb->count == 0) {
         pthread_cond_wait(&rb->not_empty, &rb->mtx);
     }
     *out = rb->buf[rb->head];
     rb->head = (rb->head + 1) % rb->capacity;
     rb->count--;
-    if (rb->count < rb->capacity) pthread_cond_signal(&rb->not_full);
+    pthread_cond_signal(&rb->not_full);
     pthread_mutex_unlock(&rb->mtx);
     return 0;
 }
@@ -81,21 +84,19 @@ typedef struct {
 } consumer_arg_t;
 
 static void *producer(void *arg) {
-    // put data int the queue
-    producer_arg_t* data = (producer_arg_t*)arg;
-    for (size_t i = 0; i < data->n; i++) {
-        rb_push(data->rb, data->data[i]);
+    producer_arg_t *pa = (producer_arg_t *)arg;
+    for (size_t i = 0; i < pa->n; i++) {
+        rb_push(pa->rb, pa->data[i]);
     }
     return NULL;
 }
 
 static void *consumer(void *arg) {
-    consumer_arg_t* data = (consumer_arg_t*) arg;
-    for (size_t i = 0; i < data->n; i++) {
+    consumer_arg_t *ca = (consumer_arg_t *)arg;
+    for (size_t i = 0; i < ca->n; i++) {
         int out;
-        rb_pop(data->rb, &out);
-        if (out == 6) { printf("%d\n", out);}
-        else { printf("%d,", out); }
+        rb_pop(ca->rb, &out);
+        printf(i + 1 == ca->n ? "%d\n" : "%d,", out);
     }
     return NULL;
 }
